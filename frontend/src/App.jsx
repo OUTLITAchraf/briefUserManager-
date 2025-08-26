@@ -14,8 +14,6 @@ function App() {
           <Route path="/register" element={<FormRegister/>}/>
         </Routes>
       </Router>
-      <formLogin/>
-      <formRegister/>
     </>
   )
 }
