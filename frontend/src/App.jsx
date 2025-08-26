@@ -1,3 +1,4 @@
+import DashbordUsers from "./components/admin/DashbordUsers"
 import FormLogin from "./components/formLogin"
 import FormRegister from "./components/formRegister"
 import Home from "./components/Home"
@@ -12,6 +13,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<FormLogin/>}/>
           <Route path="/register" element={<FormRegister/>}/>
+          <Route path="/admin/dashboard-users" element={<DashbordUsers/>}/>
         </Routes>
       </Router>
     </>
