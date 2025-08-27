@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
@@ -12,16 +13,18 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col gap-4">
-          <a href="/login">
-            <button className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition cursor-pointer">
-              Login
-            </button>
-          </a>
-          <a href="/register">
-            <button className="w-full py-3 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition cursor-pointer">
-              Register
-            </button>
-          </a>
+          <Link
+            to="/login"
+            className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition cursor-pointer"
+          >
+            Login
+          </Link>
+          <Link
+            to="/register"
+            className="w-full py-3 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition cursor-pointer"
+          >
+            Register
+          </Link>
         </div>
       </div>
     </div>
