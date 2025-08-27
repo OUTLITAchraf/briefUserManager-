@@ -1,6 +1,42 @@
 import React from "react";
+import { useState } from "react";
 
 export default function FormRegister() {
+  const [fullname, setFullname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    // Check password match
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullname, email, password }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(data.message);
+        window.location.href = "/login";
+      } else {
+        setMessage(data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Something went wrong.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-50 to-blue-100 px-4">
       <div className="w-full max-w-xl bg-white shadow-lg rounded-2xl p-8">
@@ -10,7 +46,10 @@ export default function FormRegister() {
         </h2>
 
         {/* Form */}
-        <form className="space-y-5">
+        <form 
+        onSubmit={handleRegister}
+        className="space-y-5">
+          {message && <p className="mt-4 text-center">{message}</p>}
           {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -34,6 +73,8 @@ export default function FormRegister() {
               </svg>
               <input
                 type="text"
+                onChange={(e) => setFullname(e.target.value)}
+                value={fullname}
                 placeholder="John Doe"
                 className="w-full py-2 focus:outline-none"
               />
@@ -63,6 +104,8 @@ export default function FormRegister() {
               </svg>
               <input
                 type="email"
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
                 placeholder="exemple@gmail.com"
                 className="w-full py-2 focus:outline-none"
               />
@@ -93,6 +136,8 @@ export default function FormRegister() {
               </svg>
               <input
                 type="password"
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
                 placeholder="••••••••"
                 className="w-full py-2 focus:outline-none"
               />
@@ -123,6 +168,8 @@ export default function FormRegister() {
               </svg>
               <input
                 type="password"
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={confirmPassword}
                 placeholder="••••••••"
                 className="w-full py-2 focus:outline-none"
               />
