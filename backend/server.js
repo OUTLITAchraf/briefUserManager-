@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mysql from "mysql2";
-
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 const app = express();
@@ -23,6 +23,43 @@ db.getConnection((err, connection) => {
   } else {
     console.log("DB connected successfully!");
     connection.release();
+  }
+});
+
+app.post("/register", async (req, res) => {
+  const { fullname, email, password } = req.body;
+
+  // Check if all fields are provided
+  if (!fullname || !email || !password) {
+    return res.status(400).json({ error: "Please provide all fields" });
+  }
+
+  try {
+    // Check if user already exists
+    db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      async (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length > 0)
+          return res.status(400).json({ error: "Email already exists" });
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert new user
+        db.query(
+          "INSERT INTO users (fullname, email, password) VALUES (?, ?, ?)",
+          [fullname, email, hashedPassword],
+          (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.status(201).json({ message: "User registered successfully" });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
