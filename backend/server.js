@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mysql from "mysql2";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { verifyToken } from "./middleware/auth.js";
 
 dotenv.config();
 const app = express();
@@ -114,6 +115,22 @@ app.post("/login", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+app.get("/users/:id", verifyToken, (req, res) => {
+  const { id } = req.params;
+
+  // Optionally check if requesting user matches the ID
+  if (req.user.id !== parseInt(id)) {
+    return res.status(403).json({ error: "Forbidden: Users can only access their own profiles." });
+  }
+
+  db.query("SELECT id, fullname, email FROM users WHERE id = ?", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ error: "User not found" });
+
+    res.json(results[0]); // return user (without password)
+  });
 });
 
 // Health check route
