@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import AdminNavbar from "./AdminNavBar";
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
@@ -28,13 +29,39 @@ const AdminDashboard = () => {
         fetchUsers();
     }, []);
 
-    console.log(users);
-    
+    const handleDeleteUser = async (id) => {
+        const token = localStorage.getItem("adminToken");
+
+        if (!window.confirm("Are you sure you want to delete this user?")) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/admin/users/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alert(data.message);
+                setUsers(users.filter(user => user.id !== id));
+            } else {
+                alert(data.error || "Failed to delete user");
+            }
+        } catch (err) {
+            console.log(err);
+            alert("Server error, please try again later.");
+        }
+    };
 
     if (error) return <p className="text-red-500">{error}</p>;
     if (users.length === 0) return <p>No users found.</p>;
 
     return (
+        <>
+        <AdminNavbar/>
         <div className="min-h-screen bg-gray-50 px-6 py-10">
             <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-2xl p-6">
                 {/* Title */}
@@ -63,7 +90,7 @@ const AdminDashboard = () => {
                                     <td className="px-4 py-3">{user.role}</td>
                                     <td className="px-4 py-3">
                                         <button
-                                            onClick={() => handleDelete(user.id)}
+                                            onClick={() => handleDeleteUser(user.id)}
                                             className="px-3 py-1 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition cursor-pointer"
                                         >
                                             Delete
@@ -76,6 +103,7 @@ const AdminDashboard = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

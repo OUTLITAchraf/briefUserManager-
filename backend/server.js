@@ -94,6 +94,37 @@ app.get("/admin/users", (req, res) => {
   }
 });
 
+app.delete("/admin/users/:id", (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Only admins can delete users
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden: Admins only" });
+    }
+
+    const userId = req.params.id;
+
+    db.query("DELETE FROM users WHERE id = ?", [userId], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ message: "User deleted successfully" });
+    });
+
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
+
 app.post("/register", async (req, res) => {
   const { fullname, email, password } = req.body;
 
