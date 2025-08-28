@@ -1,6 +1,43 @@
-import React from 'react'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 export default function FormLogin() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(''); 
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) =>{
+    e.preventDefault();
+    
+    try {
+      const res = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const data = await res.json();
+      console.log(data.user);
+      
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+      
+        setEmail("");
+        setPassword("");
+        setError("");
+        navigate(`/user_profile/${data.user.id}`);
+      } else {
+        setError(data.error || "Login failed");
+      }
+    } catch (err){
+      console.log(err);
+      setError({server: "An error occurred. Please try again later."});
+    }
+
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-50 to-blue-100 px-4">
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
@@ -9,8 +46,11 @@ export default function FormLogin() {
           Login to <span className="text-blue-600">UserManager</span>
         </h2>
 
+        {/* Error Message */}
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+
         {/* Form */}
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={handleLogin}>
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -36,6 +76,8 @@ export default function FormLogin() {
                 type="email"
                 placeholder="exemple@gmail.com"
                 className="w-full py-2 focus:outline-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
           </div>
@@ -66,6 +108,8 @@ export default function FormLogin() {
                 type="password"
                 placeholder="••••••••"
                 className="w-full py-2 focus:outline-none"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
@@ -87,6 +131,6 @@ export default function FormLogin() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 

@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mysql from "mysql2";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 const app = express();
@@ -56,6 +57,58 @@ app.post("/register", async (req, res) => {
             res.status(201).json({ message: "User registered successfully" });
           }
         );
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  // Check if all fields are provided
+  if (!email || !password) {
+    return res.status(400).json({ error: "Please provide email and password" });
+  }
+
+  try {
+    // Check if user exists
+    db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      async (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        if (results.length === 0) {
+          return res.status(400).json({ error: "Invalid email or password" });
+        }
+
+        const user = results[0];
+
+        // Compare password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+          return res.status(400).json({ error: "Invalid email or password" });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+          { id: user.id, email: user.email, fullname: user.fullname },
+          process.env.JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+
+        // Return user data and token (exclude password)
+        res.json({
+          message: "Login successful",
+          token,
+          user: {
+            id: user.id,
+            fullname: user.fullname,
+            email: user.email
+          }
+        });
       }
     );
   } catch (error) {
