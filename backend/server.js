@@ -28,6 +28,49 @@ db.getConnection((err, connection) => {
   }
 });
 
+app.post("/admin/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Please provide email and password" });
+  }
+
+  db.query(
+    "SELECT * FROM users WHERE email = ? AND role = 'admin'",
+    [email],
+    async (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      if (results.length === 0) {
+        return res.status(403).json({ error: "Invalid admin credentials" });
+      }
+
+      const admin = results[0];
+
+      const isValid = await bcrypt.compare(password, admin.password);
+      if (!isValid) {
+        return res.status(403).json({ error: "Invalid admin credentials" });
+      }
+
+      const token = jwt.sign(
+        { id: admin.id, fullname: admin.fullname, email: admin.email, role: admin.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.json({
+        message: "Admin login successful",
+        token,
+        admin: {
+          id: admin.id,
+          fullname: admin.fullname,
+          email: admin.email,
+        },
+      });
+    }
+  );
+});
+
 app.post("/register", async (req, res) => {
   const { fullname, email, password } = req.body;
 
