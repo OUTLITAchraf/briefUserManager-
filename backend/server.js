@@ -71,6 +71,29 @@ app.post("/admin/login", async (req, res) => {
   );
 });
 
+app.get("/admin/users", (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
+
+  const token = authHeader.split(" ")[1];
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Only allow admin (check email or role)
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden: Admins only" });
+    }
+
+    db.query("SELECT id, fullname, email, role FROM users WHERE role != 'admin'", (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    });
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
+
 app.post("/register", async (req, res) => {
   const { fullname, email, password } = req.body;
 
